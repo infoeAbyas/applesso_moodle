@@ -6049,6 +6049,10 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', 
         debugging('email_to_user: Invalid noreply-email '.s($noreplyaddress));
         $noreplyaddress = $noreplyaddressdefault;
     }
+    // To send email from no reply address if email is Apple private email.
+    if(preg_match('/@privaterelay.appleid.com|@icloud.com/', $user->email)){
+        $from->email = $noreplyaddress;
+    }
 
     // Make up an email address for handling bounces.
     if (!empty($CFG->handlebounces)) {

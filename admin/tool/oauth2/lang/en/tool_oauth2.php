@@ -131,3 +131,5 @@ $string['createnewgoogleissuer'] = 'Create new Google service';
 $string['createnewissuer'] = 'Create new custom service';
 $string['createnewmicrosoftissuer'] = 'Create new Microsoft service';
 $string['createnewnextcloudissuer'] = 'Create new Nextcloud service';
+
+$string['apple_service'] = 'Apple';
