@@ -608,10 +608,6 @@ abstract class oauth2_client extends curl {
         $accesstoken->scope = $this->scope;
         // Also add the scopes.
         self::$upgradedcodes[] = $code;
-        // Also add id_token for Apple.
-        if (!empty($r->id_token)) {
-            $accesstoken->idtoken = $r->id_token;
-        }
 
         $this->store_token($accesstoken);
 
