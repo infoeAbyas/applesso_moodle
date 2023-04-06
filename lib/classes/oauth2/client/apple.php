@@ -18,6 +18,7 @@ namespace core\oauth2\client;
 
 use core\oauth2\client;
 use Firebase\JWT\JWT;
+use moodle_url;
 /**
  * Class apple - Custom client handler to fetch data from apple
  *
@@ -29,18 +30,48 @@ use Firebase\JWT\JWT;
  * @package    core
  */
 class apple extends client {
+
+    public function __construct($issuer, $returnurl, $scopesrequired, $system = false, $autorefresh = false) {
+        $this->issuer = $issuer;
+        if (empty($returnurl)) {
+            $returnurl = new moodle_url('/');
+        }
+        $this->clientid = $issuer->get('clientid');
+        $this->clientsecret = $issuer->get('clientsecret');
+        $this->tokenurl = $issuer->get_endpoint_url('token');
+        parent::__construct($this->issuer, $returnurl, $scopesrequired);
+    }
     /**
      * Fetch the user info from the idtoken
      *
      * @return array|false
      */
     public function get_userinfo() {
-        // Decoding JWT token
-        $idtoken = explode('.', $this->accesstoken->idtoken);
-        $payload = JWT::urlsafeB64Decode($idtoken[1]);
-        $userrecord = JWT::jsonDecode($payload);
-        $user['username'] = $userrecord->email;
-        $user['email'] = $userrecord->email;
+        $user = [];
+        if (!empty($this->refreshtoken)) {
+            $postfields = [
+                'client_id' => $this->clientid,
+                'client_secret' => $this->clientsecret,
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $this->refreshtoken,
+            ];
+            $curl = new \curl();
+            $header = array(
+                "accept: application/json",
+                "cache-control: no-cache",
+                "content-type: application/x-www-form-urlencoded"
+              );
+            $curl->setHeader($header);
+            $bodyparams = http_build_query($postfields);
+            $curlparams = htmlspecialchars_decode($bodyparams);
+            $response = $curl->post($this->tokenurl, $curlparams);
+            $response = json_decode($response);
+            $idtoken = explode('.', $response->id_token);
+            $payload = JWT::urlsafeB64Decode($idtoken[1]);
+            $userrecord = JWT::jsonDecode($payload);
+            $user['username'] = $userrecord->email;
+            $user['email'] = $userrecord->email;
+        }
         return $user;
     }
 
